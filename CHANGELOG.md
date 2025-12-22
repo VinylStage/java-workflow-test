@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/VinylStage/java-workflow-test/compare/v1.1.0...v1.2.0) (2025-12-22)
+
+
+### ✨ Features
+
+* add additional endpoint ([fe3cf7f](https://github.com/VinylStage/java-workflow-test/commit/fe3cf7feeb6270c7125865d0be7d105329fd985a))
+* add additional endpoint ([c2afdf3](https://github.com/VinylStage/java-workflow-test/commit/c2afdf391ff5c50b3f2ce25f797253f17f8d05b7))
+
 ## [1.1.0](https://github.com/VinylStage/java-workflow-test/compare/v1.0.0...v1.1.0) (2025-12-22)
 
 
