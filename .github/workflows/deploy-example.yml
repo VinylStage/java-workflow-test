@@ -1,0 +1,160 @@
+# ==========================================
+# 참고용 예시: Self-hosted Runner를 사용한 배포
+# ==========================================
+#
+# 이 파일은 실제 프로젝트에서 사용된 배포 워크플로우의 예시입니다.
+# Self-hosted runner와 프로젝트 특화 환경 변수를 사용합니다.
+#
+# 주의사항:
+# - 이 워크플로우는 일반 템플릿이 아닌 특정 프로젝트(GroManage) 전용입니다.
+# - Self-hosted runner가 없는 환경에서는 작동하지 않습니다.
+# - 실제 사용 시 프로젝트에 맞게 수정이 필요합니다.
+#
+# 템플릿으로 사용할 워크플로우:
+# - pr-build.yml: PR 빌드 & 테스트
+# - release.yml: 릴리즈 자동화
+# - docker-publish.yml: Docker 이미지 빌드 & 배포
+# ==========================================
+
+name: CI/CD Pipeline (Example)
+
+on:
+  push:
+    branches:
+      - develop
+      - release/*
+  pull_request:
+    branches:
+      - develop
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy-release
+  cancel-in-progress: true
+
+jobs:
+  # ===============================
+  # CI JOB: Build & Unit Test
+  # ===============================
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Build with Gradle
+        run: ./gradlew build --no-daemon -x test
+
+      #- name: Run tests
+      #  run: ./gradlew test
+
+
+  # ===============================
+  # CD JOB: Deploy (release/* 브랜치에서만 실행)
+  # ===============================
+  deploy:
+    needs: build-and-test
+    if: startsWith(github.ref, 'refs/heads/release/')
+    runs-on: self-hosted   # EC2 self-hosted runner
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set version tag (timestamp)
+        id: version
+        run: echo "VERSION=$(date +%Y%m%d%H%M%S)" >> "$GITHUB_OUTPUT"
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Build Spring Boot Application (skip tests for speed)
+        run: ./gradlew build -x test
+
+      - name: Build & tag Docker image
+        run: |
+          docker build -t gromanage:${{ steps.version.outputs.VERSION }} .
+          docker tag gromanage:${{ steps.version.outputs.VERSION }} gromanage:latest
+
+      - name: Create unified .env file
+        run: |
+          cat <<EOF > .env
+          SPRING_PROFILES_ACTIVE=prod
+          SERVER_HOST=${{ secrets.SERVER_HOST }}
+          JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+          POSTGRESQL_URL=${{ secrets.POSTGRESQL_URL }}
+          POSTGRESQL_USERNAME=${{ secrets.POSTGRESQL_USERNAME }}
+          POSTGRESQL_PASSWORD=${{ secrets.POSTGRESQL_PASSWORD }}
+          POSTGRESQL_DATABASE=gromanage
+          MAIL_HOST=${{ secrets.MAIL_HOST }}
+          MAIL_PORT=${{ secrets.MAIL_PORT }}
+          MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
+          REDIS_HOST=${{ secrets.REDIS_HOST }}
+          REDIS_PORT=${{ secrets.REDIS_PORT }}
+          REDIS_DATABASE=${{ secrets.REDIS_DATABASE }}
+          KAKAO_CLOUD_URL=${{ secrets.KAKAO_CLOUD_URL }}
+          KAKAO_CLOUD_ACCESS_KEY=${{ secrets.KAKAO_CLOUD_ACCESS_KEY }}
+          KAKAO_CLOUD_SECRET_KEY=${{ secrets.KAKAO_CLOUD_SECRET_KEY }}
+          KAKAO_CLOUD_REGION=${{ secrets.KAKAO_CLOUD_REGION }}
+          QDRANT_DB_URL=${{ secrets.QDRANT_DB_URL }}
+          OPEN_SEARCH_HOST=${{ secrets.OPEN_SEARCH_HOST }}
+          OPEN_SEARCH_PORT=${{ secrets.OPEN_SEARCH_PORT }}
+          OPEN_SEARCH_SCHEME=${{ secrets.OPEN_SEARCH_SCHEME }}
+          OPEN_AI_API_KEY=${{ secrets.OPEN_AI_API_KEY }}
+          PORTONE_API_KEY=${{ secrets.PORTONE_API_KEY }}
+          PORTONE_API_SECRET=${{ secrets.PORTONE_API_SECRET }}
+          PORTONE_STORE_ID=${{ secrets.PORTONE_STORE_ID }}
+          PORTONE_CHANNEL_KEY=${{ secrets.PORTONE_CHANNEL_KEY }}
+          MONGO_DB_URL=${{ secrets.MONGO_DB_URL }}
+          AES_KEY=${{ secrets.AES_KEY }}
+          AES_IV=${{ secrets.AES_IV }}
+          SPRING_IPV4=172.22.0.10
+          POSTGRESQL_IPV4=172.22.0.5
+          REDIS_IPV4=172.22.0.4
+          NETWORK_SUBNET=172.22.0.0/24
+          NETWORK_GATEWAY=172.22.0.1
+          EOF
+
+      - name: Deploy locally via Compose
+        run: |
+          set -euo pipefail
+          if docker compose version >/dev/null 2>&1; then
+            COMPOSE="docker compose"
+          else
+            COMPOSE="docker-compose"
+          fi
+
+          docker network inspect gromanage-net >/dev/null 2>&1 || \
+            docker network create --driver bridge --subnet=172.22.0.0/24 --gateway=172.22.0.1 gromanage-net
+
+          $COMPOSE --env-file .env down --remove-orphans
+          $COMPOSE --env-file .env up -d --force-recreate
+
+          docker images --format "{{.Repository}}:{{.Tag}} {{.CreatedAt}}" \
+            | grep "^gromanage:" \
+            | sort -rk2 \
+            | sed -n '4,$p' \
+            | awk '{print $1}' \
+            | xargs -r docker rmi
