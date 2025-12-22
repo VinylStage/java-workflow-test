@@ -22,4 +22,9 @@ public class Application {
     public String health() {
         return "OK";
     }
+
+    @GetMapping("/test")
+    public String test() {
+        return "Test endpoint";
+    }
 }
