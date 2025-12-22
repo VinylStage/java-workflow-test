@@ -29,6 +29,21 @@ jobs:
       - name: Run Release Please
         id: release
         uses: google-github-actions/release-please-action@v4
+        with:
+          release-type: java
+          package-name: gromanage
+          changelog-types: |
+            [
+              {"type":"feat","section":"✨ Features","hidden":false},
+              {"type":"fix","section":"🐛 Bug Fixes","hidden":false},
+              {"type":"perf","section":"⚡ Performance Improvements","hidden":false},
+              {"type":"refactor","section":"♻️ Code Refactoring","hidden":false},
+              {"type":"docs","section":"📚 Documentation","hidden":false},
+              {"type":"build","section":"🏗️ Build System","hidden":false},
+              {"type":"ci","section":"🔧 CI/CD","hidden":false},
+              {"type":"chore","section":"🧹 Chores","hidden":false},
+              {"type":"revert","section":"⏪ Reverts","hidden":false}
+            ]
 
       - name: Output Release Info
         if: steps.release.outputs.release_created
