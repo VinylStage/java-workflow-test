@@ -28,24 +28,11 @@ jobs:
     steps:
       - name: Run Release Please
         id: release
-        uses: google-github-actions/release-please-action@v4
+        uses: googleapis/release-please-action@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          release-type: java
-          package-name: gromanage
-          target-branch: main
-          changelog-types: |
-            [
-              {"type":"feat","section":"✨ Features","hidden":false},
-              {"type":"fix","section":"🐛 Bug Fixes","hidden":false},
-              {"type":"perf","section":"⚡ Performance Improvements","hidden":false},
-              {"type":"refactor","section":"♻️ Code Refactoring","hidden":false},
-              {"type":"docs","section":"📚 Documentation","hidden":false},
-              {"type":"build","section":"🏗️ Build System","hidden":false},
-              {"type":"ci","section":"🔧 CI/CD","hidden":false},
-              {"type":"chore","section":"🧹 Chores","hidden":false},
-              {"type":"revert","section":"⏪ Reverts","hidden":false}
-            ]
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
 
       - name: Output Release Info
         if: steps.release.outputs.release_created

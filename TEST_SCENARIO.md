@@ -161,6 +161,11 @@ git push origin feat/test-pr-workflow
 
 **목적**: Conventional Commits 기반 자동 릴리즈 생성
 
+**사전 설정**:
+- `googleapis/release-please-action@v4` 사용 (최신 유지보수 버전)
+- `release-please-config.json`: changelog 커스터마이징 설정
+- `.release-please-manifest.json`: 현재 버전 추적
+
 **단계**:
 
 ```bash
@@ -180,60 +185,58 @@ git push origin develop
 # - PR 제목: "chore: release 준비"
 # - Merge
 
-# 3. Release-Please가 자동으로 Release PR 생성
-# - PR 제목: "chore(main): release 1.0.0" (자동 생성)
+# 3. main 브랜치에 push되면 Release-Please workflow 자동 실행
+# - workflow가 자동으로 Release PR 생성
+# - PR 제목: "chore(main): release 1.x.x" (버전은 자동 결정)
 # - CHANGELOG 자동 생성 확인
 
 # 4. Release PR 머지
+# - 머지 시 자동으로 GitHub Release 생성
+# - Docker 이미지 빌드 및 GHCR에 푸시
+# - Release notes에 Docker 이미지 정보 추가
 
 # 5. GitHub Release 자동 생성 확인
-# - Tag: v1.0.0
+# - Tag: v1.x.x
 # - Release notes에 CHANGELOG 포함
+# - Docker 이미지 다운로드 명령어 포함
 ```
 
 **확인 사항**:
-- [ ] Release-Please PR 자동 생성
-- [ ] CHANGELOG에 feat, fix 커밋 포함
-- [ ] 버전 번호 자동 결정 (1.0.0)
+- [ ] Release-Please PR 자동 생성 (googleapis/release-please-action@v4 사용)
+- [ ] CHANGELOG에 feat, fix 커밋 포함 (이모지 섹션 포함)
+- [ ] 버전 번호 자동 결정 (feat = minor 증가, fix = patch 증가)
 - [ ] GitHub Release 자동 생성
-- [ ] Git tag (v1.0.0) 생성
+- [ ] Git tag (v1.x.x) 생성
+- [ ] Docker 이미지 GHCR 배포 성공
 
 ---
 
-### 시나리오 5: Docker 이미지 배포 테스트 (선택사항)
+### 시나리오 5: Docker 이미지 배포 테스트
 
-**목적**: Release 생성 시 Docker 이미지 자동 배포
+**참고**: Docker 이미지 빌드 및 배포는 **시나리오 4에 통합**되었습니다.
 
-**사전 준비**:
-```bash
-# Dockerfile 생성
-cat > Dockerfile << 'EOF'
+**통합된 기능**:
+- Release 생성 시 `release-please.yml` workflow에서 자동으로 Docker 이미지 빌드
+- GHCR(GitHub Container Registry)에 자동 푸시
+- Release notes에 Docker 이미지 사용 방법 자동 추가
+
+**Dockerfile 확인**:
+프로젝트에 이미 `Dockerfile`이 포함되어 있습니다:
+```dockerfile
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 COPY build/libs/*.jar app.jar
 ENTRYPOINT ["java", "-jar", "app.jar"]
 EXPOSE 8080
-EOF
-
-git add Dockerfile
-git commit -m "chore: Dockerfile 추가"
-git push origin develop
 ```
 
-**단계**:
-```bash
-# 1. develop → main 머지 및 Release 생성 (위 시나리오 4 참고)
-
-# 2. docker-publish.yml workflow 실행 확인
-```
-
-**확인 사항**:
-- [ ] Docker 이미지 빌드 성공
-- [ ] GHCR(GitHub Container Registry)에 이미지 푸시 성공
-- [ ] 이미지 태그:
-  - `ghcr.io/YOUR_USERNAME/java-test-workflow:v1.0.0`
-  - `ghcr.io/YOUR_USERNAME/java-test-workflow:latest`
-- [ ] Release notes에 Docker 이미지 정보 추가
+**확인 사항** (시나리오 4와 함께 확인):
+- [ ] Release 생성 시 Docker 이미지 빌드 성공
+- [ ] GHCR에 이미지 푸시 성공
+- [ ] 이미지 태그 생성:
+  - `ghcr.io/YOUR_USERNAME/java-workflow-test:v1.x.x`
+  - `ghcr.io/YOUR_USERNAME/java-workflow-test:latest`
+- [ ] Release notes에 Docker 이미지 정보 자동 추가
 
 ---
 
