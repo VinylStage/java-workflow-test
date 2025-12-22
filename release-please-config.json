@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
   "packages": {
     ".": {
-      "release-type": "java",
+      "release-type": "simple",
       "changelog-sections": [
         {"type": "feat", "section": "✨ Features", "hidden": false},
         {"type": "fix", "section": "🐛 Bug Fixes", "hidden": false},
