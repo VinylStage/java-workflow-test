@@ -23,9 +23,3 @@ public class Application {
         return "OK";
     }
 }
-
-    @GetMapping("/test")
-    public String test() {
-        return "Test endpoint";
-    }
-
