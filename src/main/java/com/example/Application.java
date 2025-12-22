@@ -27,4 +27,9 @@ public class Application {
     public String test() {
         return "Test endpoint";
     }
+
+    @GetMapping("/additional")
+    public String additional() {
+        return "Additional endpoint";
+    }
 }
