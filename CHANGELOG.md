@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.2.3](https://github.com/VinylStage/java-workflow-test/compare/v1.2.1...v1.2.3) (2025-12-29)
+
+
+### 🐛 Bug Fixes
+
+* fixed typ ([54de8e6](https://github.com/VinylStage/java-workflow-test/commit/54de8e6a729284680a0d326590f699bbd90c64ba))
+
+
+### 🧹 Chores
+
+* **main:** release 1.2.3 ([c7d40c8](https://github.com/VinylStage/java-workflow-test/commit/c7d40c8091def67e56b568e796bd4c242e108565))
+* release 1.2.1 ([86e8bc9](https://github.com/VinylStage/java-workflow-test/commit/86e8bc96aff6f7aab9d3a281186967f299a91f8c))
+* release 1.2.1 ([7a44e52](https://github.com/VinylStage/java-workflow-test/commit/7a44e52c6f0ab52cbcc7ab07a49e0c732a0a9ac3))
+
 ## [1.2.1](https://github.com/VinylStage/java-workflow-test/compare/v1.2.0...v1.2.1) (2025-12-29)
 
 
