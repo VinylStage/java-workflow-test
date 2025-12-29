@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.4](https://github.com/VinylStage/java-workflow-test/compare/v1.2.3...v1.2.4) (2025-12-29)
+
+
+### 🐛 Bug Fixes
+
+* add release-please marker ([648d0fb](https://github.com/VinylStage/java-workflow-test/commit/648d0fb30f12417593fd2bdb3d9960098a70102c))
+* fix build.gradle ([c081a73](https://github.com/VinylStage/java-workflow-test/commit/c081a7383455a0ce4b5502e7ba9315765614250e))
+
 ## [1.2.3](https://github.com/VinylStage/java-workflow-test/compare/v1.2.1...v1.2.3) (2025-12-29)
 
 
